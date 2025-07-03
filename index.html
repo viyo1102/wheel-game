@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>南京商场幸运大转盘</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #e74c3c;
+            margin-top: 20px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #2c3e50;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+        }
+        .section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-top: 50px solid #e74c3c;
+            z-index: 10;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
+        }
+        button {
+            margin: 20px;
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #95a5a6;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <h1>南京商场幸运大转盘</h1>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel"></div>
+    </div>
+    <button id="spin-btn">开始旋转</button>
+    <div class="result" id="result"></div>
+
+    <script>
+        // 南京市主要商场列表（按区域分类）
+        const malls = [
+            // 新街口商圈
+            "德基广场", "新百商场", "中央商场", "金鹰国际", 
+            "东方福来德", "大洋百货", "艾尚天地", "苏宁广场",
+            
+            // 河西商圈
+            "河西金鹰世界", "华采天地", "吾悦广场", "龙湖天街",
+            
+            // 夫子庙/老门东
+            "水游城", "水平方", "茂业天地",
+            
+            // 江宁区
+            "景枫KINGMO", "江宁金鹰", "百家湖1912", "砂之船奥莱",
+            
+            // 仙林/城东
+            "仙林金鹰", "万达茂", "燕子矶招商花园城",
+            
+            // 其他
+            "虹悦城", "弘阳广场", "桥北万象汇", "江北虹悦城"
+        ];
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const resultDisplay = document.getElementById('result');
+
+        // 颜色池（确保每个扇区颜色不同）
+        const colors = [
+            "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", 
+            "#9966FF", "#FF9F40", "#8AC24A", "#607D8B",
+            "#E91E63", "#3F51B5", "#009688", "#795548",
+            "#CDDC39", "#9C27B0", "#00BCD4", "#FF5722"
+        ];
+
+        // 创建转盘扇区
+        function createWheel() {
+            const angle = 360 / malls.length;
+            
+            malls.forEach((mall, index) => {
+                const section = document.createElement('div');
+                section.className = 'section';
+                section.style.backgroundColor = colors[index % colors.length];
+                section.style.transform = `rotate(${angle * index}deg)`;
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = mall;
+                textSpan.style.transform = `rotate(${angle / 2}deg)`;
+                textSpan.style.display = 'inline-block';
+                textSpan.style.width = '80px';
+                textSpan.style.textAlign = 'center';
+                textSpan.style.marginLeft = '60px';
+                textSpan.style.marginBottom = '60px';
+                
+                section.appendChild(textSpan);
+                wheel.appendChild(section);
+            });
+        }
+
+        // 旋转转盘
+        function spinWheel() {
+            spinBtn.disabled = true;
+            resultDisplay.textContent = "";
+            
+            // 随机旋转角度（5-10圈 + 随机扇区）
+            const spinAngle = 1800 + Math.floor(Math.random() * 360);
+            wheel.style.transform = `rotate(${spinAngle}deg)`;
+            
+            // 计算最终结果
+            setTimeout(() => {
+                const actualAngle = spinAngle % 360;
+                const sectionAngle = 360 / malls.length;
+                const winningIndex = Math.floor((360 - actualAngle) / sectionAngle) % malls.length;
+                
+                resultDisplay.textContent = `恭喜！推荐去：${malls[winningIndex]}`;
+                spinBtn.disabled = false;
+            }, 4000);
+        }
+
+        // 初始化
+        createWheel();
+        spinBtn.addEventListener('click', spinWheel);
+    </script>
+</body>
+</html>
